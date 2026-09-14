@@ -2,6 +2,26 @@ import { useGSAP } from "@gsap/react";
 import { useRef } from "react";
 import { gsap, SplitText, prefersReduced } from "../lib/gsap";
 
+const SCRAMBLE_CHARS = "!<>-_\\/**#?@";
+
+function scrambleText(el: HTMLElement, targetText: string) {
+  const originalText = targetText;
+  const letters = targetText.split("");
+  let iteration = 0;
+
+  const interval = setInterval(() => {
+    el.innerText = letters
+      .map((letter, index) => {
+        if (index < iteration) return originalText[index];
+        return SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+      })
+      .join("");
+
+    if (iteration >= letters.length) clearInterval(interval);
+    iteration += 1 / 3;
+  }, 30);
+}
+
 export function Hero() {
   const root = useRef<HTMLElement>(null);
 
@@ -16,6 +36,14 @@ export function Hero() {
         duration: 0.7,
         ease: "expo.out",
         stagger: 0.018,
+        onComplete: () => {
+          split.chars.forEach((char, i) => {
+            const el = char as HTMLElement;
+            setTimeout(() => {
+              scrambleText(el, el.innerText);
+            }, i * 20);
+          });
+        },
       });
       gsap.from(".hero-sub", {
         y: 12,

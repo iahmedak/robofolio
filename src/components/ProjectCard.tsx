@@ -8,6 +8,7 @@ export function ProjectCard({ p }: { p: RobotProject }) {
       meta={`${p.role} · ${p.year}`}
       blurb={p.blurb}
       visual={`${p.slug} — visual slot`}
+      specs={p.specs}
     />
   );
 }

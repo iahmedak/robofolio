@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState, useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { ScrollSmoother, prefersReduced } from "./lib/gsap";
 import { AmbientGradient } from "./components/AmbientGradient";
@@ -9,12 +9,16 @@ import { WorkIndex } from "./components/WorkIndex";
 import { LabBento } from "./components/LabBento";
 import { ProcessStack } from "./components/ProcessStack";
 import { ContactFooter } from "./components/ContactFooter";
+import { gsap, ScrollTrigger } from "gsap";
 
 const RobotStage = lazy(() =>
   import("./components/RobotStage").then((m) => ({ default: m.RobotStage }))
 );
 
 export default function App() {
+  const [progress, setProgress] = useState(0);
+  const glitchRef = useRef<HTMLDivElement>(null);
+
   useGSAP(() => {
     if (prefersReduced()) return;
 
@@ -23,33 +27,63 @@ export default function App() {
       effects: false,
     });
 
-    return () => smoother.kill();
+    ScrollTrigger.create({
+      trigger: "#smooth-content",
+      start: "top top",
+      end: "bottom bottom",
+      scrub: true,
+      onUpdate: (self) => {
+        setProgress(self.progress);
+
+        // Trigger a subtle glitch effect based on velocity
+        const vel = Math.abs(self.getVelocity());
+        if (vel > 1000) {
+          gsap.to(glitchRef.current, {
+            opacity: Math.min(vel / 5000, 0.3),
+            duration: 0.1,
+          });
+        } else {
+          gsap.to(glitchRef.current, {
+            opacity: 0,
+            duration: 0.3,
+          });
+        }
+      },
+    });
+
+    return () => {
+      smoother.kill();
+    };
   }, []);
 
   return (
     <div id="smooth-wrapper" className="min-h-[100dvh] bg-base text-ink antialiased">
-      <div id="smooth-content">
+      <div id="smooth-content" className="relative">
         <AmbientGradient />
         <TrailField />
         <PillNav />
-        <div className="relative">
-          <Hero />
-          <div className="absolute top-0 right-0 w-full h-full pointer-events-none flex justify-end items-center px-6">
-            <div className="w-full md:w-1/2 h-[500px] pointer-events-auto">
-              <Suspense
-                fallback={
-                  <div className="w-full h-full animate-pulse bg-line/40 rounded-2xl" />
-                }
-              >
-                <RobotStage />
-              </Suspense>
-            </div>
-          </div>
+
+        {/* Global Glitch Overlay */}
+        <div
+          ref={glitchRef}
+          className="fixed inset-0 pointer-events-none z-[100] opacity-0 mix-blend-difference bg-[url('https://grainy-grads.vercel.app/noise.svg')] contrast-150 brightness-150"
+        />
+
+        {/* 3D World - Fixed Background */}
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <Suspense fallback={<div className="w-full h-full bg-base" />}>
+            <RobotStage scrollProgress={progress} />
+          </Suspense>
         </div>
-        <WorkIndex />
-        <LabBento />
-        <ProcessStack />
-        <ContactFooter />
+
+        {/* HTML Overlays - Scrollable Content */}
+        <div className="relative z-10">
+          <Hero />
+          <WorkIndex />
+          <LabBento />
+          <ProcessStack />
+          <ContactFooter />
+        </div>
       </div>
     </div>
   );
