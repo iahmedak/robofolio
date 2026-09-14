@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { PillNav } from "./components/PillNav";
 import { Hero } from "./components/Hero";
 import { AmbientGradient } from "./components/AmbientGradient";
+import { TrailField } from "./components/TrailField";
 
 const RobotStage = lazy(() =>
   import("./components/RobotStage").then((m) => ({ default: m.RobotStage }))
@@ -11,6 +12,7 @@ export default function App() {
   return (
     <div className="min-h-[100dvh] bg-base text-ink antialiased">
       <AmbientGradient />
+      <TrailField />
       <PillNav />
       <div className="relative">
         <Hero />
@@ -29,6 +31,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
