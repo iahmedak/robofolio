@@ -1,4 +1,9 @@
 @import "tailwindcss";
+@import "@fontsource/space-grotesk/700.css";
+@import "@fontsource/space-grotesk/500.css";
+@import "@fontsource/inter-tight/400.css";
+@import "@fontsource/inter-tight/500.css";
+@import "@fontsource/jetbrains-mono/400.css";
 
 @theme {
   --color-base: #f6f7f9;
@@ -12,7 +17,34 @@
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--color-base);
   color: var(--color-ink);
+  font-family: var(--font-body);
+  margin: 0;
+  padding: 0;
+}
+
+::selection {
+  background: #2b5cff;
+  color: white;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid #2b5cff;
+  outline-offset: 3px;
 }
