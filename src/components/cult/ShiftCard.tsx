@@ -1,7 +1,7 @@
 // Adapted from CULT-UI Shift Card (MIT, cult-ui.com) — restyled to robo tokens.
 import { motion } from "motion/react";
 import { useRef } from "react";
-import { gsap } from "gsap";
+import { gsap } from "../../lib/gsap";
 
 export function ShiftCard({
   title,
@@ -16,38 +16,48 @@ export function ShiftCard({
   visual: string;
   specs?: { label: string; value: string }[];
 }) {
-  const cardRef = useRef<any>(null);
-  const scanlineRef = useRef<any>(null);
-  const specsRef = useRef<any>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const scanlineRef = useRef<HTMLDivElement>(null);
+  const specsRef = useRef<HTMLDivElement>(null);
 
   const handleMouseEnter = () => {
+    if (!scanlineRef.current) return;
     const tl = gsap.timeline({
-      defaults: { ease: "expo.out" },
+      defaults: { ease: "expo.out" as const },
     });
 
     tl.to(scanlineRef.current, {
       top: "100%",
       opacity: 1,
       duration: 0.4,
-    })
-    .to(scanlineRef.current, {
+    }).to(scanlineRef.current, {
       opacity: 0,
       duration: 0.2,
-    })
-    .to(specsRef.current?.children as any, {
-      opacity: 1,
-      y: 0,
-      stagger: 0.04,
-      duration: 0.4,
-    }, "-=0.2");
+    });
+
+    if (specsRef.current) {
+      const targets = Array.from(specsRef.current.children);
+      if (targets.length) {
+        tl.to(
+          targets,
+          {
+            opacity: 1,
+            y: 0,
+            stagger: 0.04,
+            duration: 0.4,
+          },
+          "-=0.2"
+        );
+      }
+    }
   };
 
   return (
     <motion.article
-      ref={cardRef as any}
+      ref={cardRef}
       onMouseEnter={handleMouseEnter}
       whileHover={{ y: -12, scale: 1.01 }}
-      transition={{ type: "spring", stiffness: 300, damping: 15 }}
+      transition={{ type: "spring", stiffness: 300, damping: 15 } as const}
       className="group w-[85vw] md:w-[34rem] shrink-0 rounded-3xl bg-surface/60 border border-line backdrop-blur-sm overflow-hidden transition-all hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/10 will-change-transform"
     >
       <div className="aspect-[16/10] bg-base relative overflow-hidden">
