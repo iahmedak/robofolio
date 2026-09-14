@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState, useRef } from "react";
 import { useGSAP } from "@gsap/react";
-import { ScrollSmoother, prefersReduced } from "./lib/gsap";
+import { gsap, ScrollTrigger, ScrollSmoother, prefersReduced } from "./lib/gsap";
 import { AmbientGradient } from "./components/AmbientGradient";
 import { TrailField } from "./components/TrailField";
 import { PillNav } from "./components/PillNav";
@@ -9,7 +9,6 @@ import { WorkIndex } from "./components/WorkIndex";
 import { LabBento } from "./components/LabBento";
 import { ProcessStack } from "./components/ProcessStack";
 import { ContactFooter } from "./components/ContactFooter";
-import { gsap, ScrollTrigger } from "gsap";
 
 const RobotStage = lazy(() =>
   import("./components/RobotStage").then((m) => ({ default: m.RobotStage }))
@@ -27,12 +26,12 @@ export default function App() {
       effects: false,
     });
 
-    ScrollTrigger.create({
+    const trigger = ScrollTrigger.create({
       trigger: "#smooth-content",
       start: "top top",
       end: "bottom bottom",
       scrub: true,
-      onUpdate: (self) => {
+      onUpdate: (self: { progress: number; getVelocity: () => number }) => {
         setProgress(self.progress);
 
         // Trigger a subtle glitch effect based on velocity
@@ -53,6 +52,7 @@ export default function App() {
 
     return () => {
       smoother.kill();
+      trigger.kill();
     };
   }, []);
 
@@ -88,8 +88,3 @@ export default function App() {
     </div>
   );
 }
-
-
-
-
-
