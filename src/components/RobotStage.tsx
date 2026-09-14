@@ -2,14 +2,13 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { ContactShadows, Environment, Grid, Html } from "@react-three/drei";
 import { Suspense, useRef, useEffect } from "react";
 import * as THREE from "three";
-import { gsap } from "gsap";
 
 // Viewpoints define the "scenes" the camera will visit
 export const VIEWPOINTS = {
-  HERO: { position: [3.2, 2.2, 4.2], target: [0, 0, 0], fov: 38 },
-  WORK: { position: [-2, 1, 2], target: [0, 0, 0], fov: 30 },
-  LAB: { position: [0, 3, 1], target: [0, 0, 0], fov: 45 },
-  CONTACT: { position: [0, 0, 5], target: [0, 0, 0], fov: 35 },
+  HERO: { position: [3.2, 2.2, 4.2] as const, target: [0, 0, 0] as const, fov: 38 },
+  WORK: { position: [-2, 1, 2] as const, target: [0, 0, 0] as const, fov: 30 },
+  LAB: { position: [0, 3, 1] as const, target: [0, 0, 0] as const, fov: 45 },
+  CONTACT: { position: [0, 0, 5] as const, target: [0, 0, 0] as const, fov: 35 },
 };
 
 function CameraController({ progress }: { progress: number }) {
@@ -18,23 +17,19 @@ function CameraController({ progress }: { progress: number }) {
   const camTarget = useRef(new THREE.Vector3());
 
   useFrame(() => {
-    // Interpolate between viewpoints based on scroll progress (0 to 1)
-    // This is a simplified linear interpolation across 4 points
     const points = [VIEWPOINTS.HERO, VIEWPOINTS.WORK, VIEWPOINTS.LAB, VIEWPOINTS.CONTACT];
     const section = Math.min(Math.floor(progress * (points.length - 1)), points.length - 2);
-    const sectionProgress = (progress * (points.length - 1)) - section;
+    const sectionProgress = progress * (points.length - 1) - section;
 
     const start = points[section];
     const end = points[section + 1];
 
-    // Lerp Position
     camPos.current.set(
       THREE.MathUtils.lerp(start.position[0], end.position[0], sectionProgress),
       THREE.MathUtils.lerp(start.position[1], end.position[1], sectionProgress),
       THREE.MathUtils.lerp(start.position[2], end.position[2], sectionProgress)
     );
 
-    // Lerp Target
     camTarget.current.set(
       THREE.MathUtils.lerp(start.target[0], end.target[0], sectionProgress),
       THREE.MathUtils.lerp(start.target[1], end.target[1], sectionProgress),
@@ -43,8 +38,11 @@ function CameraController({ progress }: { progress: number }) {
 
     camera.position.copy(camPos.current);
     camera.lookAt(camTarget.current);
-    camera.fov = THREE.MathUtils.lerp(start.fov, end.fov, sectionProgress);
-    camera.updateProjectionMatrix();
+    if ((camera as THREE.PerspectiveCamera).isPerspectiveCamera) {
+      const persp = camera as THREE.PerspectiveCamera;
+      persp.fov = THREE.MathUtils.lerp(start.fov, end.fov, sectionProgress);
+      persp.updateProjectionMatrix();
+    }
   });
 
   return null;
@@ -57,7 +55,6 @@ function Rig({ pointer }: { pointer: React.MutableRefObject<{ x: number; y: numb
 
   useFrame((_, dt) => {
     if (!g.current) return;
-    // Gentle float motion + pointer influence
     g.current.rotation.y += dt * 0.1 + pointer.current.x * 0.001;
     g.current.position.y = Math.sin(Date.now() * 0.001) * 0.1;
 
@@ -119,6 +116,7 @@ export function RobotStage({ scrollProgress }: { scrollProgress: number }) {
   return (
     <Canvas
       dpr={[1, 1.75]}
+      camera={{ position: [3.2, 2.2, 4.2], fov: 38 }}
       gl={{ antialias: true, powerPreference: "high-performance" }}
     >
       <color attach="background" args={["#F6F7F9"]} />

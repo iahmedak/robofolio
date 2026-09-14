@@ -1,7 +1,7 @@
 // Adapted from CULT-UI Shift Card (MIT, cult-ui.com) — restyled to robo tokens.
 import { motion } from "motion/react";
 import { useRef } from "react";
-import anime from "animejs";
+import { gsap } from "gsap";
 
 export function ShiftCard({
   title,
@@ -16,33 +16,35 @@ export function ShiftCard({
   visual: string;
   specs?: { label: string; value: string }[];
 }) {
-  const cardRef = useRef<HTMLElement>(null);
-  const scanlineRef = useRef<HTMLElement>(null);
-  const specsRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<any>(null);
+  const scanlineRef = useRef<any>(null);
+  const specsRef = useRef<any>(null);
 
   const handleMouseEnter = () => {
-    const tl = anime.timeline({
-      easing: "easeOutExpo",
+    const tl = gsap.timeline({
+      defaults: { ease: "expo.out" },
     });
 
-    tl.add({
-      targets: scanlineRef.current,
-      top: ["0%", "100%"],
-      opacity: [0, 1, 0],
-      duration: 800,
+    tl.to(scanlineRef.current, {
+      top: "100%",
+      opacity: 1,
+      duration: 0.4,
     })
-    .add({
-      targets: specsRef.current?.children,
-      opacity: [0, 1],
-      translateY: [10, 0],
-      delay: anime.stagger(40),
-      duration: 400,
-    }, "-=400");
+    .to(scanlineRef.current, {
+      opacity: 0,
+      duration: 0.2,
+    })
+    .to(specsRef.current?.children as any, {
+      opacity: 1,
+      y: 0,
+      stagger: 0.04,
+      duration: 0.4,
+    }, "-=0.2");
   };
 
   return (
     <motion.article
-      ref={cardRef}
+      ref={cardRef as any}
       onMouseEnter={handleMouseEnter}
       whileHover={{ y: -12, scale: 1.01 }}
       transition={{ type: "spring", stiffness: 300, damping: 15 }}
@@ -56,7 +58,7 @@ export function ShiftCard({
         {/* Scanline */}
         <div
           ref={scanlineRef}
-          className="absolute left-0 w-full h-[2px] bg-accent shadow-[0_0_15px_rgba(43,92,255,0.8)] opacity-0 pointer-events-none z-10"
+          className="absolute top-0 left-0 w-full h-[2px] bg-accent shadow-[0_0_15px_rgba(43,92,255,0.8)] opacity-0 pointer-events-none z-10"
         />
         {/* Glass Overlay on Hover */}
         <motion.div
@@ -78,7 +80,7 @@ export function ShiftCard({
         {specs && (
           <div ref={specsRef} className="flex flex-wrap gap-2 mt-6">
             {specs.map((s, i) => (
-              <div key={i} className="px-2 py-1 rounded-md bg-base border border-line font-mono text-[9px] text-muted opacity-0">
+              <div key={i} className="px-2 py-1 rounded-md bg-base border border-line font-mono text-[9px] text-muted opacity-0 translate-y-2">
                 <span className="text-accent font-bold">{s.label}:</span> {s.value}
               </div>
             ))}
